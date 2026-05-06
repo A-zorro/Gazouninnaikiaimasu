@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>OCR Test v3 | カオゼロ</title>
+  <title>OCR Test v3.1 | カオゼロ</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&family=Rajdhani:wght@600;700&display=swap">
   <style>
@@ -18,54 +18,39 @@
 .card { background: #252525; border: 1px solid #383838; border-radius: 12px; padding: 16px; margin-bottom: 12px; }
 .card-title { font-size: 10px; font-weight: 700; color: #555; letter-spacing: 0.14em; text-transform: uppercase; margin-bottom: 10px; }
 
-/* アップロード */
 .upload-area { position: relative; border: 1.5px dashed #444; border-radius: 10px; min-height: 72px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; cursor: pointer; color: #666; font-size: 13px; transition: border-color 0.2s; }
 .upload-area:hover { border-color: #7eb8d4; color: #7eb8d4; }
 .upload-area input[type=file] { position: absolute; inset: 0; opacity: 0; width: 100%; height: 100%; cursor: pointer; }
-
-/* 画像サイズ表示 */
 #imgSizeInfo { font-size: 11px; color: #7eb8d4; margin-top: 8px; text-align: center; display: none; }
 
-/* Canvas */
 #canvasWrap { display: none; position: relative; touch-action: none; user-select: none; margin-bottom: 10px; }
 #mainCanvas { width: 100%; display: block; border-radius: 8px; border: 1px solid #383838; cursor: crosshair; }
 #selInfo { font-size: 11px; color: #888; margin-top: 5px; text-align: center; min-height: 16px; }
 
-/* タブ切り替え */
 .tab-row { display: flex; gap: 6px; margin-bottom: 12px; }
 .tab-btn { flex: 1; padding: 8px; border-radius: 7px; border: 1px solid #444; background: transparent; color: #666; font-family: 'Noto Sans JP', sans-serif; font-size: 12px; cursor: pointer; transition: all 0.15s; }
 .tab-btn.active { border-color: #7eb8d4; color: #7eb8d4; background: rgba(126,184,212,0.1); }
 
-/* 座標入力パネル */
 #inputPanel { display: none; }
 .coord-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
 .coord-field label { font-size: 10px; color: #777; display: block; margin-bottom: 4px; letter-spacing: 0.08em; }
-.coord-field input[type=number] {
-  width: 100%; padding: 8px 10px; border-radius: 7px; border: 1px solid #444;
-  background: #1e1e1e; color: #e0e0e0; font-family: 'Rajdhani', sans-serif;
-  font-size: 18px; font-weight: 600; text-align: center;
-}
+.coord-field input[type=number] { width: 100%; padding: 8px 10px; border-radius: 7px; border: 1px solid #444; background: #1e1e1e; color: #e0e0e0; font-family: 'Rajdhani', sans-serif; font-size: 18px; font-weight: 600; text-align: center; }
 .coord-field input[type=number]:focus { outline: none; border-color: #7eb8d4; }
-/* スピナー非表示 */
 input[type=number]::-webkit-inner-spin-button,
 input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; }
-
-/* ステッパーボタン */
 .stepper-row { display: flex; gap: 4px; margin-top: 4px; }
 .step-btn { flex: 1; padding: 5px 0; border-radius: 5px; border: 1px solid #444; background: #1e1e1e; color: #888; font-size: 12px; cursor: pointer; font-family: 'Rajdhani', sans-serif; transition: all 0.1s; }
 .step-btn:active { background: #333; color: #fff; }
 
-/* 名前入力 */
 .name-row { display: flex; gap: 8px; align-items: center; margin-bottom: 10px; }
 .name-row label { font-size: 11px; color: #777; flex-shrink: 0; }
 .name-row input[type=text] { flex: 1; padding: 8px 10px; border-radius: 7px; border: 1px solid #444; background: #1e1e1e; color: #e0e0e0; font-family: 'Noto Sans JP', sans-serif; font-size: 13px; }
 .name-row input[type=text]:focus { outline: none; border-color: #7eb8d4; }
 
-/* 登録ボタン */
 .add-btn { width: 100%; padding: 10px; border-radius: 8px; border: 1.5px dashed #444; background: transparent; color: #666; font-family: 'Noto Sans JP', sans-serif; font-size: 12px; cursor: pointer; transition: all 0.15s; }
-.add-btn:hover { border-color: #7eb8d4; color: #7eb8d4; }
+.add-btn:hover:not(:disabled) { border-color: #7eb8d4; color: #7eb8d4; }
+.add-btn:disabled { opacity: 0.3; cursor: not-allowed; }
 
-/* 領域リスト */
 #regionList { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
 .region-item { display: flex; align-items: center; gap: 8px; background: #1e1e1e; border-radius: 8px; padding: 8px 10px; border: 1px solid #333; }
 .region-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
@@ -73,11 +58,14 @@ input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; }
 .region-coord { font-size: 10px; color: #666; flex: 2; word-break: break-all; line-height: 1.5; }
 .region-acts { display: flex; gap: 5px; flex-shrink: 0; }
 .r-btn { padding: 4px 8px; border-radius: 5px; border: 1px solid #444; background: transparent; color: #888; font-size: 11px; cursor: pointer; font-family: 'Noto Sans JP', sans-serif; }
-.r-btn.run { border-color: #7eb8d4; color: #7eb8d4; }
+.r-btn.run  { border-color: #7eb8d4; color: #7eb8d4; }
 .r-btn.edit { border-color: #a78bfa; color: #a78bfa; }
-.r-btn.del { border-color: #f87171; color: #f87171; }
+.r-btn.del  { border-color: #f87171; color: #f87171; }
 
-/* OCR設定 */
+/* プレビューラベル */
+.preview-label { font-size: 10px; color: #555; letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 6px; margin-top: 10px; }
+#previewCanvas { width: 100%; display: block; border-radius: 8px; border: 1px solid #383838; image-rendering: pixelated; }
+
 .setting-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
 .setting-label { font-size: 11px; color: #777; flex-shrink: 0; width: 72px; }
 select { flex: 1; background: #1e1e1e; border: 1px solid #444; border-radius: 6px; color: #e0e0e0; font-family: 'Noto Sans JP', sans-serif; font-size: 12px; padding: 6px 8px; }
@@ -93,7 +81,6 @@ select { flex: 1; background: #1e1e1e; border: 1px solid #444; border-radius: 6p
 .progress-bar { height: 3px; background: #333; border-radius: 2px; margin-top: 6px; overflow: hidden; }
 .progress-fill { height: 100%; background: #7eb8d4; border-radius: 2px; transition: width 0.3s; width: 0%; }
 
-/* 結果 */
 .result-group { border-bottom: 1px solid #333; padding-bottom: 14px; margin-bottom: 14px; }
 .result-group:last-child { border-bottom: none; margin-bottom: 0; }
 .result-group-label { font-size: 11px; font-weight: 700; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
@@ -110,11 +97,10 @@ select { flex: 1; background: #1e1e1e; border: 1px solid #444; border-radius: 6p
 .wc-mid  { border-color: #fbbf24; color: #fbbf24; background: rgba(251,191,36,0.08); }
 .wc-low  { border-color: #f87171; color: #f87171; background: rgba(248,113,113,0.08); }
 
-/* 座標出力 */
 #coordOutput { background: #1e1e1e; border: 1px solid #333; border-radius: 8px; padding: 10px 12px; font-family: monospace; font-size: 11px; color: #7eb8d4; word-break: break-all; line-height: 1.8; }
 .copy-btn { margin-top: 6px; padding: 7px 12px; border-radius: 6px; border: 1px solid #444; background: transparent; color: #777; font-family: 'Noto Sans JP', sans-serif; font-size: 11px; cursor: pointer; }
 .copy-btn.copied { border-color: #34d399; color: #34d399; }
-.version { text-align: center; font-size: 10px; color: #333; margin-top: 20px; }
+.version { text-align: center; font-size: 10px; color: #444; margin-top: 20px; }
 ```
 
   </style>
@@ -122,11 +108,9 @@ select { flex: 1; background: #1e1e1e; border: 1px solid #444; border-radius: 6p
 <body>
 
 <div class="header">
-  <h1>OCR TEST v3</h1>
+  <h1>OCR TEST</h1>
   <p>領域選択 + 座標手入力 + Tesseract.js</p>
 </div>
-
-<!-- STEP1 -->
 
 <div class="card">
   <div class="card-title">STEP 1 — 画像アップロード</div>
@@ -138,16 +122,11 @@ select { flex: 1; background: #1e1e1e; border: 1px solid #444; border-radius: 6p
   <div id="imgSizeInfo"></div>
 </div>
 
-<!-- STEP2 -->
-
 <div class="card" id="step2Card" style="display:none;">
   <div class="card-title">STEP 2 — 読み取り領域を設定</div>
-
-  <!-- タブ -->
-
   <div class="tab-row">
-    <button class="tab-btn active" id="tabDrag" onclick="switchTab('drag')">📐 ドラッグ選択</button>
-    <button class="tab-btn" id="tabInput" onclick="switchTab('input')">⌨️ 座標入力</button>
+    <button class="tab-btn active" id="tabDrag"  onclick="switchTab('drag')">📐 ドラッグ選択</button>
+    <button class="tab-btn"        id="tabInput" onclick="switchTab('input')">⌨️ 座標入力</button>
   </div>
 
   <!-- ドラッグパネル -->
@@ -165,12 +144,12 @@ select { flex: 1; background: #1e1e1e; border: 1px solid #444; border-radius: 6p
   <div id="inputPanel">
     <div class="name-row">
       <label>名前</label>
-      <input type="text" id="inputName" placeholder="例: カード名、効果テキスト" value="領域1">
+      <input type="text" id="inputName" placeholder="例: カード名、効果テキスト" value="領域2">
     </div>
     <div class="coord-grid">
       <div class="coord-field">
         <label>X（左端）</label>
-        <input type="number" id="inX" value="0" min="0">
+        <input type="number" id="inX" value="523" min="0">
         <div class="stepper-row">
           <button class="step-btn" onclick="step('inX',-10)">-10</button>
           <button class="step-btn" onclick="step('inX',-1)">-1</button>
@@ -180,7 +159,7 @@ select { flex: 1; background: #1e1e1e; border: 1px solid #444; border-radius: 6p
       </div>
       <div class="coord-field">
         <label>Y（上端）</label>
-        <input type="number" id="inY" value="0" min="0">
+        <input type="number" id="inY" value="130" min="0">
         <div class="stepper-row">
           <button class="step-btn" onclick="step('inY',-10)">-10</button>
           <button class="step-btn" onclick="step('inY',-1)">-1</button>
@@ -190,7 +169,7 @@ select { flex: 1; background: #1e1e1e; border: 1px solid #444; border-radius: 6p
       </div>
       <div class="coord-field">
         <label>W（幅）</label>
-        <input type="number" id="inW" value="100" min="1">
+        <input type="number" id="inW" value="310" min="1">
         <div class="stepper-row">
           <button class="step-btn" onclick="step('inW',-10)">-10</button>
           <button class="step-btn" onclick="step('inW',-1)">-1</button>
@@ -200,7 +179,7 @@ select { flex: 1; background: #1e1e1e; border: 1px solid #444; border-radius: 6p
       </div>
       <div class="coord-field">
         <label>H（高さ）</label>
-        <input type="number" id="inH" value="40" min="1">
+        <input type="number" id="inH" value="490" min="1">
         <div class="stepper-row">
           <button class="step-btn" onclick="step('inH',-10)">-10</button>
           <button class="step-btn" onclick="step('inH',-1)">-1</button>
@@ -210,22 +189,15 @@ select { flex: 1; background: #1e1e1e; border: 1px solid #444; border-radius: 6p
       </div>
     </div>
     <button class="add-btn" id="addInputBtn">＋ この座標で領域を登録</button>
-    <!-- プレビュー -->
-    <div style="margin-top:10px;">
-      <div class="card-title">プレビュー（選択範囲）</div>
-      <canvas id="previewCanvas" style="width:100%;border-radius:8px;border:1px solid #383838;display:block;"></canvas>
-    </div>
+    <div class="preview-label">PREVIEW — 前処理適用済み</div>
+    <canvas id="previewCanvas"></canvas>
   </div>
-
-  <!-- 登録済み領域 -->
 
   <div style="margin-top:14px;">
     <div class="card-title">登録済み領域</div>
     <div id="regionList"><span style="font-size:12px;color:#555;">（未登録）</span></div>
   </div>
 </div>
-
-<!-- STEP3 -->
 
 <div class="card" id="step3Card" style="display:none;">
   <div class="card-title">STEP 3 — OCR設定 &amp; 実行</div>
@@ -247,7 +219,7 @@ select { flex: 1; background: #1e1e1e; border: 1px solid #444; border-radius: 6p
       <option value="13">13: 生テキスト行</option>
     </select>
   </div>
-  <div class="card-title" style="margin-top:10px;">前処理</div>
+  <div class="card-title" style="margin-top:10px;">前処理（重ねがけ可）</div>
   <div class="toggle-row">
     <button class="toggle-btn" id="tGray">グレースケール</button>
     <button class="toggle-btn" id="tContrast">コントラスト</button>
@@ -262,14 +234,10 @@ select { flex: 1; background: #1e1e1e; border: 1px solid #444; border-radius: 6p
   </div>
 </div>
 
-<!-- STEP4 結果 -->
-
 <div class="card" id="resultArea" style="display:none;">
   <div class="card-title">STEP 4 — 結果</div>
   <div id="resultGroups"></div>
 </div>
-
-<!-- 座標出力 -->
 
 <div class="card" id="coordCard" style="display:none;">
   <div class="card-title">座標データ（JS用）</div>
@@ -277,19 +245,86 @@ select { flex: 1; background: #1e1e1e; border: 1px solid #444; border-radius: 6p
   <button class="copy-btn" id="coordCopyBtn">📋 コピー</button>
 </div>
 
-<div class="version">OCR Test v3.0 — Tesseract.js</div>
+<div class="version">OCR Test v3.1 — 2026-05-06</div>
 
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 
 <script>
-  /* ── 状態 ── */
+  /* ── 定数・デフォルト ── */
   const COLORS = ['#7eb8d4','#fbbf24','#34d399','#f87171','#a78bfa','#fb923c'];
+  const DEFAULT_REGION = { name:'領域1', x:523, y:130, w:310, h:490, color: COLORS[0] };
+
+  /* ── 状態 ── */
   let originalImage = null;
   let imgW = 0, imgH = 0;
   let regions = [];
   let selecting = false, selStart = null, selCurrent = null;
   let currentTab = 'drag';
   const tog = { gray:false, contrast:false, thresh:false, invert:false, scale:false };
+
+  /* ── 前処理済みCanvas生成（単一の正式版） ── */
+  function getProcessed(x, y, w, h) {
+    const c = document.createElement('canvas');
+    c.width = w; c.height = h;
+    c.getContext('2d').drawImage(originalImage, x, y, w, h, 0, 0, w, h);
+    const ctx = c.getContext('2d');
+    let d = ctx.getImageData(0, 0, w, h);
+    let p = d.data;
+
+    if (tog.gray || tog.contrast || tog.thresh) {
+      for (let i = 0; i < p.length; i += 4) {
+        const g = p[i]*0.299 + p[i+1]*0.587 + p[i+2]*0.114;
+        p[i] = p[i+1] = p[i+2] = g;
+      }
+    }
+    if (tog.contrast) {
+      const f = 2;
+      for (let i = 0; i < p.length; i += 4) {
+        p[i]   = Math.min(255, Math.max(0, f*(p[i]  -128)+128));
+        p[i+1] = Math.min(255, Math.max(0, f*(p[i+1]-128)+128));
+        p[i+2] = Math.min(255, Math.max(0, f*(p[i+2]-128)+128));
+      }
+    }
+    if (tog.thresh) {
+      for (let i = 0; i < p.length; i += 4) {
+        const v = p[i] > 128 ? 255 : 0;
+        p[i] = p[i+1] = p[i+2] = v;
+      }
+    }
+    if (tog.invert) {
+      for (let i = 0; i < p.length; i += 4) {
+        p[i] = 255-p[i]; p[i+1] = 255-p[i+1]; p[i+2] = 255-p[i+2];
+      }
+    }
+    ctx.putImageData(d, 0, 0);
+
+    if (tog.scale) {
+      const b = document.createElement('canvas');
+      b.width = w*2; b.height = h*2;
+      b.getContext('2d').drawImage(c, 0, 0, w*2, h*2);
+      return b;
+    }
+    return c;
+  }
+
+  /* ── プレビューcanvas更新（getProcessed経由） ── */
+  function updatePreviewCanvas() {
+    if (!originalImage) return;
+    const x = parseInt(document.getElementById('inX').value) || 0;
+    const y = parseInt(document.getElementById('inY').value) || 0;
+    const w = Math.max(1, parseInt(document.getElementById('inW').value) || 1);
+    const h = Math.max(1, parseInt(document.getElementById('inH').value) || 1);
+
+    // メインcanvasにハイライト
+    drawCanvas(x, y, w, h);
+
+    // プレビューに前処理済み画像を表示
+    const processed = getProcessed(x, y, w, h);
+    const pc = document.getElementById('previewCanvas');
+    pc.width  = processed.width;
+    pc.height = processed.height;
+    pc.getContext('2d').drawImage(processed, 0, 0);
+  }
 
   /* ── ファイル読み込み ── */
   document.getElementById('fileInput').addEventListener('change', function(e) {
@@ -300,18 +335,17 @@ select { flex: 1; background: #1e1e1e; border: 1px solid #444; border-radius: 6p
       const img = new Image();
       img.onload = () => {
         originalImage = img; imgW = img.width; imgH = img.height;
-        regions = []; selStart = selCurrent = null;
+        regions = [{ ...DEFAULT_REGION }]; // デフォルト領域を登録済みにする
+        selStart = selCurrent = null;
 
-        // 画像サイズ表示
         const sizeEl = document.getElementById('imgSizeInfo');
         sizeEl.textContent = `元画像サイズ: ${imgW} × ${imgH} px`;
         sizeEl.style.display = 'block';
 
         setupCanvas();
-        updatePreviewCanvas();
         ['step2Card','step3Card'].forEach(id => document.getElementById(id).style.display = 'block');
         ['resultArea','coordCard'].forEach(id => document.getElementById(id).style.display = 'none');
-        renderRegionList(); drawCanvas();
+        renderRegionList(); drawCanvas(); updateCoordOutput();
       };
       img.src = ev.target.result;
     };
@@ -326,8 +360,8 @@ select { flex: 1; background: #1e1e1e; border: 1px solid #444; border-radius: 6p
     document.getElementById('dragPanel').style.display  = tab === 'drag'  ? 'block' : 'none';
     document.getElementById('inputPanel').style.display = tab === 'input' ? 'block' : 'none';
     if (tab === 'input') updatePreviewCanvas();
+    else drawCanvas();
   }
-  // 初期状態
   document.getElementById('inputPanel').style.display = 'none';
 
   /* ── ステッパー ── */
@@ -336,43 +370,32 @@ select { flex: 1; background: #1e1e1e; border: 1px solid #444; border-radius: 6p
     el.value = Math.max(0, (parseInt(el.value) || 0) + delta);
     updatePreviewCanvas();
   }
-  // 入力変更時にもプレビュー更新
   ['inX','inY','inW','inH'].forEach(id => {
     document.getElementById(id).addEventListener('input', updatePreviewCanvas);
   });
 
-  /* ── 座標入力プレビュー ── */
-  function updatePreviewCanvas() {
-    if (!originalImage) return;
-    const x = parseInt(document.getElementById('inX').value) || 0;
-    const y = parseInt(document.getElementById('inY').value) || 0;
-    const w = Math.max(1, parseInt(document.getElementById('inW').value) || 1);
-    const h = Math.max(1, parseInt(document.getElementById('inH').value) || 1);
-
-    // 元画像上の選択範囲をメインcanvasに描画
-    drawCanvas(x, y, w, h);
-
-    // プレビューcanvasに切り取り表示
-    const pc = document.getElementById('previewCanvas');
-    pc.width = w; pc.height = h;
-    pc.getContext('2d').drawImage(originalImage, x, y, w, h, 0, 0, w, h);
-  }
+  /* ── 前処理トグル ── */
+  [['tGray','gray'],['tContrast','contrast'],['tThresh','thresh'],['tInvert','invert'],['tScale','scale']].forEach(([id,key]) => {
+    document.getElementById(id).addEventListener('click', function() {
+      tog[key] = !tog[key];
+      this.classList.toggle('active', tog[key]);
+      // トグル変更時もプレビュー即更新
+      if (currentTab === 'input') updatePreviewCanvas();
+    });
+  });
 
   /* ── Canvas セットアップ ── */
   function setupCanvas() {
     const wrap = document.getElementById('canvasWrap');
-    // 古いcanvasを置き換えてイベント重複を防ぐ
-    const old = document.getElementById('mainCanvas');
-    const nc  = old.cloneNode(true);
+    const old  = document.getElementById('mainCanvas');
+    const nc   = old.cloneNode(true);
     old.parentNode.replaceChild(nc, old);
     nc.id = 'mainCanvas';
     wrap.style.display = 'block';
-
     const dispW = wrap.clientWidth || (window.innerWidth - 56);
     nc.width = imgW; nc.height = imgH;
     nc.style.width  = dispW + 'px';
     nc.style.height = (imgH * dispW / imgW) + 'px';
-
     nc.addEventListener('mousedown',  onDown);
     nc.addEventListener('mousemove',  onMove);
     nc.addEventListener('mouseup',    onUp);
@@ -401,8 +424,10 @@ select { flex: 1; background: #1e1e1e; border: 1px solid #444; border-radius: 6p
   function onDown(e) { e.preventDefault(); selecting=true; selStart=getPos(e); selCurrent={...selStart}; document.getElementById('addDragBtn').disabled=true; }
   function onMove(e) { e.preventDefault(); if(!selecting) return; selCurrent=getPos(e); drawCanvas(); updateDragInfo(); }
   function onUp(e)   {
-    e.preventDefault(); if(!selecting) return; selecting=false; selCurrent=getUpPos(e); drawCanvas(); updateDragInfo();
-    const rw=Math.abs((selCurrent.x||0)-(selStart.x||0)), rh=Math.abs((selCurrent.y||0)-(selStart.y||0));
+    e.preventDefault(); if(!selecting) return; selecting=false; selCurrent=getUpPos(e);
+    drawCanvas(); updateDragInfo();
+    const rw=Math.abs((selCurrent.x||0)-(selStart.x||0));
+    const rh=Math.abs((selCurrent.y||0)-(selStart.y||0));
     document.getElementById('addDragBtn').disabled=(rw<5||rh<5);
   }
 
@@ -413,7 +438,7 @@ select { flex: 1; background: #1e1e1e; border: 1px solid #444; border-radius: 6p
     document.getElementById('selInfo').textContent=`選択中: x=${x} y=${y} w=${w} h=${h}`;
   }
 
-  /* ── Canvas描画（inputHighlight: 座標入力パネルのハイライト用） ── */
+  /* ── Canvas描画 ── */
   function drawCanvas(hlX, hlY, hlW, hlH) {
     const canvas = document.getElementById('mainCanvas');
     if (!canvas || !originalImage) return;
@@ -421,7 +446,6 @@ select { flex: 1; background: #1e1e1e; border: 1px solid #444; border-radius: 6p
     ctx.clearRect(0,0,imgW,imgH);
     ctx.drawImage(originalImage,0,0);
 
-    // 登録済み領域
     regions.forEach(r => {
       ctx.strokeStyle=r.color; ctx.lineWidth=3; ctx.setLineDash([]);
       ctx.strokeRect(r.x,r.y,r.w,r.h);
@@ -429,7 +453,6 @@ select { flex: 1; background: #1e1e1e; border: 1px solid #444; border-radius: 6p
       ctx.fillText(r.name,r.x+4,r.y+20);
     });
 
-    // ドラッグ選択中
     if (selStart && selCurrent && currentTab==='drag') {
       const x=Math.min(selStart.x,selCurrent.x), y=Math.min(selStart.y,selCurrent.y);
       const w=Math.abs(selCurrent.x-selStart.x), h=Math.abs(selCurrent.y-selStart.y);
@@ -439,7 +462,6 @@ select { flex: 1; background: #1e1e1e; border: 1px solid #444; border-radius: 6p
       ctx.setLineDash([]);
     }
 
-    // 座標入力パネルのハイライト
     if (hlW !== undefined && currentTab==='input') {
       ctx.strokeStyle='rgba(255,255,255,0.85)'; ctx.lineWidth=2; ctx.setLineDash([6,3]);
       ctx.strokeRect(hlX,hlY,hlW,hlH);
@@ -455,7 +477,7 @@ select { flex: 1; background: #1e1e1e; border: 1px solid #444; border-radius: 6p
     const w=Math.abs(selCurrent.x-selStart.x), h=Math.abs(selCurrent.y-selStart.y);
     if (w<5||h<5) return;
     const name = prompt('領域名', `領域${regions.length+1}`) || `領域${regions.length+1}`;
-    addRegion(name, x, y, w, h);
+    addRegion(name,x,y,w,h);
     selStart=selCurrent=null;
     document.getElementById('addDragBtn').disabled=true;
     document.getElementById('selInfo').textContent='ドラッグして次の領域を選択できます';
@@ -468,47 +490,45 @@ select { flex: 1; background: #1e1e1e; border: 1px solid #444; border-radius: 6p
     const w=Math.max(1,parseInt(document.getElementById('inW').value)||1);
     const h=Math.max(1,parseInt(document.getElementById('inH').value)||1);
     const name=document.getElementById('inputName').value.trim()||`領域${regions.length+1}`;
-    addRegion(name, x, y, w, h);
-    // 次の入力用に名前をインクリメント
-    const match = name.match(/^(.+?)(\d+)$/);
-    if (match) document.getElementById('inputName').value = match[1]+(parseInt(match[2])+1);
+    addRegion(name,x,y,w,h);
+    const match=name.match(/^(.+?)(\d+)$/);
+    if (match) document.getElementById('inputName').value=match[1]+(parseInt(match[2])+1);
   });
 
-  function addRegion(name, x, y, w, h) {
-    const color = COLORS[regions.length % COLORS.length];
-    regions.push({ name, x, y, w, h, color });
+  function addRegion(name,x,y,w,h) {
+    const color=COLORS[regions.length % COLORS.length];
+    regions.push({name,x,y,w,h,color});
     renderRegionList(); drawCanvas(); updateCoordOutput();
   }
 
-  /* ── 編集（座標入力パネルへ値をセット） ── */
+  /* ── 編集 ── */
   function editRegion(i) {
-    const r = regions[i];
-    document.getElementById('inputName').value = r.name;
-    document.getElementById('inX').value = r.x;
-    document.getElementById('inY').value = r.y;
-    document.getElementById('inW').value = r.w;
-    document.getElementById('inH').value = r.h;
+    const r=regions[i];
+    document.getElementById('inputName').value=r.name;
+    document.getElementById('inX').value=r.x;
+    document.getElementById('inY').value=r.y;
+    document.getElementById('inW').value=r.w;
+    document.getElementById('inH').value=r.h;
+    regions.splice(i,1);
+    renderRegionList(); drawCanvas(); updateCoordOutput();
     switchTab('input');
     updatePreviewCanvas();
-    // 既存から削除（再登録してもらう）
-    regions.splice(i, 1);
-    renderRegionList(); drawCanvas(); updateCoordOutput();
   }
 
   function renderRegionList() {
-    const list = document.getElementById('regionList');
+    const list=document.getElementById('regionList');
     if (!regions.length) { list.innerHTML='<span style="font-size:12px;color:#555;">（未登録）</span>'; return; }
     list.innerHTML='';
-    regions.forEach((r,i) => {
+    regions.forEach((r,i)=>{
       const item=document.createElement('div'); item.className='region-item';
       item.innerHTML=`
         <div class="region-dot" style="background:${r.color};"></div>
         <span class="region-name">${r.name}</span>
         <span class="region-coord">x:${r.x} y:${r.y}<br>w:${r.w} h:${r.h}</span>
         <div class="region-acts">
-          <button class="r-btn run" data-i="${i}">▶</button>
-          <button class="r-btn edit" data-i="${i}">✎</button>
-          <button class="r-btn del" data-i="${i}">✕</button>
+          <button class="r-btn run">▶</button>
+          <button class="r-btn edit">✎</button>
+          <button class="r-btn del">✕</button>
         </div>`;
       item.querySelector('.run').onclick  = () => runOCR([regions[i]]);
       item.querySelector('.edit').onclick = () => editRegion(i);
@@ -517,28 +537,9 @@ select { flex: 1; background: #1e1e1e; border: 1px solid #444; border-radius: 6p
     });
   }
 
-  /* ── 前処理トグル ── */
-  [['tGray','gray'],['tContrast','contrast'],['tThresh','thresh'],['tInvert','invert'],['tScale','scale']].forEach(([id,key])=>{
-    document.getElementById(id).addEventListener('click',function(){ tog[key]=!tog[key]; this.classList.toggle('active',tog[key]); });
-  });
-
-  /* ── 前処理済みCanvas生成 ── */
-  function getProcessed(x,y,w,h) {
-    const c=document.createElement('canvas'); c.width=w; c.height=h;
-    c.getContext('2d').drawImage(originalImage,x,y,w,h,0,0,w,h);
-    const ctx=c.getContext('2d'); let d=ctx.getImageData(0,0,w,h); let p=d.data;
-    if(tog.gray||tog.contrast||tog.thresh){for(let i=0;i<p.length;i+=4){const g=p[i]*.299+p[i+1]*.587+p[i+2]*.114;p[i]=p[i+1]=p[i+2]=g;}}
-    if(tog.contrast){const f=2;for(let i=0;i<p.length;i+=4){p[i]=Math.min(255,Math.max(0,f*(p[i]-128)+128));p[i+1]=Math.min(255,Math.max(0,f*(p[i+1]-128)+128));p[i+2]=Math.min(255,Math.max(0,f*(p[i+2]-128)+128));}}
-    if(tog.thresh){for(let i=0;i<p.length;i+=4){const v=p[i]>128?255:0;p[i]=p[i+1]=p[i+2]=v;}}
-    if(tog.invert){for(let i=0;i<p.length;i+=4){p[i]=255-p[i];p[i+1]=255-p[i+1];p[i+2]=255-p[i+2];}}
-    ctx.putImageData(d,0,0);
-    if(tog.scale){const b=document.createElement('canvas');b.width=w*2;b.height=h*2;b.getContext('2d').drawImage(c,0,0,w*2,h*2);return b;}
-    return c;
-  }
-
   /* ── OCR実行 ── */
-  document.getElementById('runAllBtn').addEventListener('click',()=>{
-    if(!regions.length){alert('領域を登録してください');return;}
+  document.getElementById('runAllBtn').addEventListener('click', () => {
+    if (!regions.length) { alert('領域を登録してください'); return; }
     runOCR(regions);
   });
 
@@ -551,19 +552,20 @@ select { flex: 1; background: #1e1e1e; border: 1px solid #444; border-radius: 6p
     const psm=document.getElementById('modeSelect').value;
     const results=[];
 
-    for(let i=0;i<targets.length;i++){
+    for (let i=0; i<targets.length; i++) {
       const r=targets[i];
       document.getElementById('statusText').textContent=`[${i+1}/${targets.length}] ${r.name} 処理中...`;
       document.getElementById('progressFill').style.width='0%';
-      try{
-        const canvas=getProcessed(r.x,r.y,r.w,r.h);
-        const res=await Tesseract.recognize(canvas,lang,{
-          logger:m=>{if(m.status==='recognizing text')document.getElementById('progressFill').style.width=Math.round(m.progress*100)+'%';},
-          tessedit_pageseg_mode:psm,
+      try {
+        // getProcessed を必ず経由する
+        const canvas=getProcessed(r.x, r.y, r.w, r.h);
+        const res=await Tesseract.recognize(canvas, lang, {
+          logger: m => { if(m.status==='recognizing text') document.getElementById('progressFill').style.width=Math.round(m.progress*100)+'%'; },
+          tessedit_pageseg_mode: psm,
         });
-        results.push({region:r,data:res.data,error:null});
-      }catch(e){
-        results.push({region:r,data:null,error:e.message});
+        results.push({region:r, data:res.data, error:null});
+      } catch(e) {
+        results.push({region:r, data:null, error:e.message});
       }
     }
 
@@ -576,28 +578,31 @@ select { flex: 1; background: #1e1e1e; border: 1px solid #444; border-radius: 6p
     const area=document.getElementById('resultArea');
     const groups=document.getElementById('resultGroups');
     area.style.display='block'; groups.innerHTML='';
-    results.forEach(({region:r,data,error})=>{
+    results.forEach(({region:r, data, error})=>{
       const g=document.createElement('div'); g.className='result-group';
       g.innerHTML=`<div class="result-group-label"><span class="result-dot" style="background:${r.color};"></span>${r.name}</div>`;
-      if(error){
+      if (error) {
         g.innerHTML+=`<div class="result-text empty">エラー: ${error}</div>`;
-      }else{
+      } else {
         const text=(data.text||'').trim();
         const conf=data.confidence;
         const cc=conf>=70?'#34d399':conf>=40?'#fbbf24':'#f87171';
-        const te=document.createElement('div'); te.className='result-text'+(text?'':' empty'); te.textContent=text||'（テキスト未検出）'; g.appendChild(te);
+        const te=document.createElement('div');
+        te.className='result-text'+(text?'':' empty');
+        te.textContent=text||'（テキスト未検出）';
+        g.appendChild(te);
         const cr=document.createElement('div'); cr.className='conf-row';
         cr.innerHTML=`<div class="conf-bar"><div class="conf-fill" style="width:${conf}%;background:${cc};"></div></div><span class="conf-val" style="color:${cc};">${Math.round(conf)}%</span>`;
         g.appendChild(cr);
         const wl=document.createElement('div'); wl.className='word-list';
         (data.words||[]).forEach(w=>{
-          if(!w.text.trim())return;
+          if(!w.text.trim()) return;
           const c=document.createElement('span');
           c.className='word-chip '+(w.confidence>=80?'wc-high':w.confidence>=50?'wc-mid':'wc-low');
           c.textContent=`${w.text}(${Math.round(w.confidence)})`;
           wl.appendChild(c);
         });
-        if(!wl.children.length)wl.innerHTML='<span style="color:#555;font-size:11px;">単語なし</span>';
+        if (!wl.children.length) wl.innerHTML='<span style="color:#555;font-size:11px;">単語なし</span>';
         g.appendChild(wl);
       }
       groups.appendChild(g);
@@ -608,16 +613,16 @@ select { flex: 1; background: #1e1e1e; border: 1px solid #444; border-radius: 6p
   /* ── 座標出力 ── */
   function updateCoordOutput() {
     const card=document.getElementById('coordCard');
-    if(!regions.length){card.style.display='none';return;}
+    if (!regions.length) { card.style.display='none'; return; }
     card.style.display='block';
     const lines=regions.map(r=>`  "${r.name}": { x:${r.x}, y:${r.y}, w:${r.w}, h:${r.h} }`);
     document.getElementById('coordOutput').textContent=`// 元画像サイズ: ${imgW}×${imgH}\nconst CROP_REGIONS = {\n${lines.join(',\n')}\n};`;
   }
 
-  document.getElementById('coordCopyBtn').addEventListener('click',function(){
+  document.getElementById('coordCopyBtn').addEventListener('click', function() {
     navigator.clipboard.writeText(document.getElementById('coordOutput').textContent).then(()=>{
       this.textContent='✅ コピーしました'; this.classList.add('copied');
-      setTimeout(()=>{this.textContent='📋 コピー';this.classList.remove('copied');},2000);
+      setTimeout(()=>{ this.textContent='📋 コピー'; this.classList.remove('copied'); }, 2000);
     });
   });
 </script>
