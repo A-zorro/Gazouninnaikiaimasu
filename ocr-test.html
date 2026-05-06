@@ -1,568 +1,625 @@
 <!DOCTYPE html>
+
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>OCR Test | カオゼロ v2</title>
+  <title>OCR Test v3 | カオゼロ</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&family=Rajdhani:wght@600;700&display=swap">
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #1a1a1a; color: #e0e0e0; font-family: 'Noto Sans JP', sans-serif; min-height: 100vh; padding: 16px 14px 60px; }
+    .header { text-align: center; padding: 18px 0 20px; border-bottom: 1px solid #333; margin-bottom: 16px; }
+    .header h1 { font-family: 'Rajdhani', sans-serif; font-size: 22px; letter-spacing: 0.1em; color: #fff; }
+    .header p { font-size: 11px; color: #555; margin-top: 3px; }
 
-    body {
-      background: #1a1a1a;
-      color: #e0e0e0;
-      font-family: 'Noto Sans JP', sans-serif;
-      min-height: 100vh;
-      padding: 16px 14px 60px;
-    }
+```
+.card { background: #252525; border: 1px solid #383838; border-radius: 12px; padding: 16px; margin-bottom: 12px; }
+.card-title { font-size: 10px; font-weight: 700; color: #555; letter-spacing: 0.14em; text-transform: uppercase; margin-bottom: 10px; }
 
-    .header {
-      text-align: center;
-      padding: 20px 0 24px;
-      border-bottom: 1px solid #333;
-      margin-bottom: 20px;
-    }
-    .header h1 {
-      font-family: 'Rajdhani', sans-serif;
-      font-size: 22px;
-      letter-spacing: 0.1em;
-      color: #fff;
-    }
-    .header p { font-size: 11px; color: #666; margin-top: 4px; }
+/* アップロード */
+.upload-area { position: relative; border: 1.5px dashed #444; border-radius: 10px; min-height: 72px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; cursor: pointer; color: #666; font-size: 13px; transition: border-color 0.2s; }
+.upload-area:hover { border-color: #7eb8d4; color: #7eb8d4; }
+.upload-area input[type=file] { position: absolute; inset: 0; opacity: 0; width: 100%; height: 100%; cursor: pointer; }
 
-    .card {
-      background: #252525;
-      border: 1px solid #383838;
-      border-radius: 12px;
-      padding: 16px;
-      margin-bottom: 14px;
-    }
-    .card-title {
-      font-size: 10px;
-      font-weight: 700;
-      color: #666;
-      letter-spacing: 0.14em;
-      text-transform: uppercase;
-      margin-bottom: 12px;
-    }
+/* 画像サイズ表示 */
+#imgSizeInfo { font-size: 11px; color: #7eb8d4; margin-top: 8px; text-align: center; display: none; }
 
-    /* アップロード */
-    .upload-area {
-      position: relative;
-      border: 1.5px dashed #444;
-      border-radius: 10px;
-      min-height: 80px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-      cursor: pointer;
-      transition: border-color 0.2s;
-      color: #666;
-      font-size: 13px;
-    }
-    .upload-area:hover { border-color: #7eb8d4; color: #7eb8d4; }
-    .upload-area input[type=file] {
-      position: absolute; inset: 0; opacity: 0;
-      width: 100%; height: 100%; cursor: pointer;
-    }
-    .upload-icon { font-size: 28px; }
+/* Canvas */
+#canvasWrap { display: none; position: relative; touch-action: none; user-select: none; margin-bottom: 10px; }
+#mainCanvas { width: 100%; display: block; border-radius: 8px; border: 1px solid #383838; cursor: crosshair; }
+#selInfo { font-size: 11px; color: #888; margin-top: 5px; text-align: center; min-height: 16px; }
 
-    /* プレビュー */
-    #previewArea { display: none; }
-    #previewCanvas {
-      width: 100%;
-      border-radius: 8px;
-      border: 1px solid #383838;
-      display: block;
-    }
+/* タブ切り替え */
+.tab-row { display: flex; gap: 6px; margin-bottom: 12px; }
+.tab-btn { flex: 1; padding: 8px; border-radius: 7px; border: 1px solid #444; background: transparent; color: #666; font-family: 'Noto Sans JP', sans-serif; font-size: 12px; cursor: pointer; transition: all 0.15s; }
+.tab-btn.active { border-color: #7eb8d4; color: #7eb8d4; background: rgba(126,184,212,0.1); }
 
-    /* 領域選択ガイド */
-    .region-hint {
-      font-size: 11px;
-      color: #888;
-      margin-top: 8px;
-      text-align: center;
-    }
+/* 座標入力パネル */
+#inputPanel { display: none; }
+.coord-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
+.coord-field label { font-size: 10px; color: #777; display: block; margin-bottom: 4px; letter-spacing: 0.08em; }
+.coord-field input[type=number] {
+  width: 100%; padding: 8px 10px; border-radius: 7px; border: 1px solid #444;
+  background: #1e1e1e; color: #e0e0e0; font-family: 'Rajdhani', sans-serif;
+  font-size: 18px; font-weight: 600; text-align: center;
+}
+.coord-field input[type=number]:focus { outline: none; border-color: #7eb8d4; }
+/* スピナー非表示 */
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; }
 
-    /* 設定 */
-    .setting-row {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin-bottom: 10px;
-    }
-    .setting-label {
-      font-size: 12px;
-      color: #888;
-      flex-shrink: 0;
-      width: 80px;
-    }
-    select, input[type=range] {
-      flex: 1;
-      background: #1e1e1e;
-      border: 1px solid #444;
-      border-radius: 6px;
-      color: #e0e0e0;
-      font-family: 'Noto Sans JP', sans-serif;
-      font-size: 12px;
-      padding: 6px 8px;
-    }
+/* ステッパーボタン */
+.stepper-row { display: flex; gap: 4px; margin-top: 4px; }
+.step-btn { flex: 1; padding: 5px 0; border-radius: 5px; border: 1px solid #444; background: #1e1e1e; color: #888; font-size: 12px; cursor: pointer; font-family: 'Rajdhani', sans-serif; transition: all 0.1s; }
+.step-btn:active { background: #333; color: #fff; }
 
-    /* 前処理トグル */
-    .toggle-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-      margin-bottom: 10px;
-    }
-    .toggle-btn {
-      padding: 5px 10px;
-      border-radius: 6px;
-      border: 1px solid #444;
-      background: transparent;
-      color: #666;
-      font-family: 'Noto Sans JP', sans-serif;
-      font-size: 11px;
-      cursor: pointer;
-      transition: all 0.15s;
-    }
-    .toggle-btn.active {
-      border-color: #7eb8d4;
-      color: #7eb8d4;
-      background: rgba(126,184,212,0.1);
-    }
+/* 名前入力 */
+.name-row { display: flex; gap: 8px; align-items: center; margin-bottom: 10px; }
+.name-row label { font-size: 11px; color: #777; flex-shrink: 0; }
+.name-row input[type=text] { flex: 1; padding: 8px 10px; border-radius: 7px; border: 1px solid #444; background: #1e1e1e; color: #e0e0e0; font-family: 'Noto Sans JP', sans-serif; font-size: 13px; }
+.name-row input[type=text]:focus { outline: none; border-color: #7eb8d4; }
 
-    /* ボタン */
-    .btn {
-      width: 100%;
-      padding: 12px;
-      border-radius: 8px;
-      border: 1px solid #444;
-      background: transparent;
-      color: #e0e0e0;
-      font-family: 'Noto Sans JP', sans-serif;
-      font-size: 13px;
-      font-weight: 700;
-      cursor: pointer;
-      transition: all 0.15s;
-    }
-    .btn-primary {
-      border-color: #7eb8d4;
-      color: #7eb8d4;
-      background: rgba(126,184,212,0.08);
-    }
-    .btn-primary:disabled {
-      opacity: 0.4;
-      cursor: not-allowed;
-    }
+/* 登録ボタン */
+.add-btn { width: 100%; padding: 10px; border-radius: 8px; border: 1.5px dashed #444; background: transparent; color: #666; font-family: 'Noto Sans JP', sans-serif; font-size: 12px; cursor: pointer; transition: all 0.15s; }
+.add-btn:hover { border-color: #7eb8d4; color: #7eb8d4; }
 
-    /* ステータス */
-    #statusBar {
-      display: none;
-      padding: 10px 14px;
-      background: #1e1e1e;
-      border-radius: 8px;
-      border: 1px solid #383838;
-      font-size: 12px;
-      color: #888;
-      margin-top: 10px;
-    }
-    .progress-bar {
-      height: 3px;
-      background: #333;
-      border-radius: 2px;
-      margin-top: 8px;
-      overflow: hidden;
-    }
-    .progress-fill {
-      height: 100%;
-      background: #7eb8d4;
-      border-radius: 2px;
-      transition: width 0.3s;
-      width: 0%;
-    }
+/* 領域リスト */
+#regionList { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
+.region-item { display: flex; align-items: center; gap: 8px; background: #1e1e1e; border-radius: 8px; padding: 8px 10px; border: 1px solid #333; }
+.region-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.region-name { flex: 1; font-size: 12px; font-weight: 700; }
+.region-coord { font-size: 10px; color: #666; flex: 2; word-break: break-all; line-height: 1.5; }
+.region-acts { display: flex; gap: 5px; flex-shrink: 0; }
+.r-btn { padding: 4px 8px; border-radius: 5px; border: 1px solid #444; background: transparent; color: #888; font-size: 11px; cursor: pointer; font-family: 'Noto Sans JP', sans-serif; }
+.r-btn.run { border-color: #7eb8d4; color: #7eb8d4; }
+.r-btn.edit { border-color: #a78bfa; color: #a78bfa; }
+.r-btn.del { border-color: #f87171; color: #f87171; }
 
-    /* 結果 */
-    #resultArea { display: none; }
-    .result-block {
-      margin-bottom: 14px;
-    }
-    .result-block-label {
-      font-size: 10px;
-      color: #666;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      margin-bottom: 6px;
-    }
-    .result-text {
-      background: #1e1e1e;
-      border: 1px solid #333;
-      border-radius: 8px;
-      padding: 12px;
-      font-size: 13px;
-      line-height: 1.7;
-      white-space: pre-wrap;
-      word-break: break-all;
-      min-height: 60px;
-      color: #c8c8c8;
-    }
-    .result-text.empty { color: #555; font-style: italic; }
+/* OCR設定 */
+.setting-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+.setting-label { font-size: 11px; color: #777; flex-shrink: 0; width: 72px; }
+select { flex: 1; background: #1e1e1e; border: 1px solid #444; border-radius: 6px; color: #e0e0e0; font-family: 'Noto Sans JP', sans-serif; font-size: 12px; padding: 6px 8px; }
+.toggle-row { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+.toggle-btn { padding: 5px 10px; border-radius: 6px; border: 1px solid #444; background: transparent; color: #666; font-family: 'Noto Sans JP', sans-serif; font-size: 11px; cursor: pointer; transition: all 0.15s; }
+.toggle-btn.active { border-color: #7eb8d4; color: #7eb8d4; background: rgba(126,184,212,0.1); }
 
-    /* 信頼度バー */
-    .conf-row {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 6px;
-    }
-    .conf-label { font-size: 11px; color: #888; width: 60px; }
-    .conf-bar {
-      flex: 1;
-      height: 6px;
-      background: #333;
-      border-radius: 3px;
-      overflow: hidden;
-    }
-    .conf-fill {
-      height: 100%;
-      border-radius: 3px;
-      transition: width 0.5s;
-    }
-    .conf-val { font-size: 11px; color: #888; width: 36px; text-align: right; }
+.btn { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #444; background: transparent; color: #e0e0e0; font-family: 'Noto Sans JP', sans-serif; font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.15s; }
+.btn-primary { border-color: #7eb8d4; color: #7eb8d4; background: rgba(126,184,212,0.08); }
+.btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
 
-    /* 単語一覧 */
-    .word-list {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 5px;
-    }
-    .word-chip {
-      padding: 3px 8px;
-      border-radius: 4px;
-      font-size: 11px;
-      border: 1px solid;
-    }
-    .word-chip.high { border-color: #34d399; color: #34d399; background: rgba(52,211,153,0.08); }
-    .word-chip.mid  { border-color: #fbbf24; color: #fbbf24; background: rgba(251,191,36,0.08); }
-    .word-chip.low  { border-color: #f87171; color: #f87171; background: rgba(248,113,113,0.08); }
+#statusBar { display: none; padding: 9px 12px; background: #1e1e1e; border-radius: 8px; border: 1px solid #333; font-size: 12px; color: #777; margin-top: 10px; }
+.progress-bar { height: 3px; background: #333; border-radius: 2px; margin-top: 6px; overflow: hidden; }
+.progress-fill { height: 100%; background: #7eb8d4; border-radius: 2px; transition: width 0.3s; width: 0%; }
 
-    /* コピーボタン */
-    .copy-btn {
-      margin-top: 6px;
-      padding: 7px 12px;
-      border-radius: 6px;
-      border: 1px solid #444;
-      background: transparent;
-      color: #888;
-      font-family: 'Noto Sans JP', sans-serif;
-      font-size: 11px;
-      cursor: pointer;
-    }
-    .copy-btn.copied { border-color: #34d399; color: #34d399; }
+/* 結果 */
+.result-group { border-bottom: 1px solid #333; padding-bottom: 14px; margin-bottom: 14px; }
+.result-group:last-child { border-bottom: none; margin-bottom: 0; }
+.result-group-label { font-size: 11px; font-weight: 700; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+.result-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+.result-text { background: #1e1e1e; border: 1px solid #333; border-radius: 8px; padding: 10px 12px; font-size: 13px; line-height: 1.7; white-space: pre-wrap; word-break: break-all; min-height: 48px; color: #c8c8c8; }
+.result-text.empty { color: #444; font-style: italic; }
+.conf-row { display: flex; align-items: center; gap: 8px; margin-top: 6px; }
+.conf-bar { flex: 1; height: 5px; background: #333; border-radius: 3px; overflow: hidden; }
+.conf-fill { height: 100%; border-radius: 3px; }
+.conf-val { font-size: 11px; width: 36px; text-align: right; }
+.word-list { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 8px; }
+.word-chip { padding: 3px 8px; border-radius: 4px; font-size: 11px; border: 1px solid; }
+.wc-high { border-color: #34d399; color: #34d399; background: rgba(52,211,153,0.08); }
+.wc-mid  { border-color: #fbbf24; color: #fbbf24; background: rgba(251,191,36,0.08); }
+.wc-low  { border-color: #f87171; color: #f87171; background: rgba(248,113,113,0.08); }
 
-    /* バージョン */
-    .version {
-      text-align: center;
-      font-size: 10px;
-      color: #444;
-      margin-top: 20px;
-    }
+/* 座標出力 */
+#coordOutput { background: #1e1e1e; border: 1px solid #333; border-radius: 8px; padding: 10px 12px; font-family: monospace; font-size: 11px; color: #7eb8d4; word-break: break-all; line-height: 1.8; }
+.copy-btn { margin-top: 6px; padding: 7px 12px; border-radius: 6px; border: 1px solid #444; background: transparent; color: #777; font-family: 'Noto Sans JP', sans-serif; font-size: 11px; cursor: pointer; }
+.copy-btn.copied { border-color: #34d399; color: #34d399; }
+.version { text-align: center; font-size: 10px; color: #333; margin-top: 20px; }
+```
+
   </style>
 </head>
 <body>
 
 <div class="header">
-  <h1>OCR TEST</h1>
-  <p>Tesseract.js 精度検証ツール — カオゼロ v2</p>
+  <h1>OCR TEST v3</h1>
+  <p>領域選択 + 座標手入力 + Tesseract.js</p>
 </div>
 
-<!-- STEP1: 画像アップロード -->
+<!-- STEP1 -->
+
 <div class="card">
   <div class="card-title">STEP 1 — 画像アップロード</div>
-  <div class="upload-area" id="uploadArea">
-    <span class="upload-icon">🖼️</span>
+  <div class="upload-area">
+    <span style="font-size:24px;">🖼️</span>
     <span>カード画像をタップして選択</span>
     <input type="file" accept="image/*" id="fileInput">
   </div>
+  <div id="imgSizeInfo"></div>
 </div>
 
-<!-- プレビュー -->
-<div class="card" id="previewArea">
-  <div class="card-title">PREVIEW</div>
-  <canvas id="previewCanvas"></canvas>
-  <p class="region-hint">※ 全体をOCRします</p>
+<!-- STEP2 -->
+
+<div class="card" id="step2Card" style="display:none;">
+  <div class="card-title">STEP 2 — 読み取り領域を設定</div>
+
+  <!-- タブ -->
+
+  <div class="tab-row">
+    <button class="tab-btn active" id="tabDrag" onclick="switchTab('drag')">📐 ドラッグ選択</button>
+    <button class="tab-btn" id="tabInput" onclick="switchTab('input')">⌨️ 座標入力</button>
+  </div>
+
+  <!-- ドラッグパネル -->
+
+  <div id="dragPanel">
+    <div id="canvasWrap">
+      <canvas id="mainCanvas"></canvas>
+      <div id="selInfo">ドラッグして領域を選択してください</div>
+    </div>
+    <button class="add-btn" id="addDragBtn" disabled style="margin-top:8px;">＋ 選択中の領域を登録</button>
+  </div>
+
+  <!-- 座標入力パネル -->
+
+  <div id="inputPanel">
+    <div class="name-row">
+      <label>名前</label>
+      <input type="text" id="inputName" placeholder="例: カード名、効果テキスト" value="領域1">
+    </div>
+    <div class="coord-grid">
+      <div class="coord-field">
+        <label>X（左端）</label>
+        <input type="number" id="inX" value="0" min="0">
+        <div class="stepper-row">
+          <button class="step-btn" onclick="step('inX',-10)">-10</button>
+          <button class="step-btn" onclick="step('inX',-1)">-1</button>
+          <button class="step-btn" onclick="step('inX',1)">+1</button>
+          <button class="step-btn" onclick="step('inX',10)">+10</button>
+        </div>
+      </div>
+      <div class="coord-field">
+        <label>Y（上端）</label>
+        <input type="number" id="inY" value="0" min="0">
+        <div class="stepper-row">
+          <button class="step-btn" onclick="step('inY',-10)">-10</button>
+          <button class="step-btn" onclick="step('inY',-1)">-1</button>
+          <button class="step-btn" onclick="step('inY',1)">+1</button>
+          <button class="step-btn" onclick="step('inY',10)">+10</button>
+        </div>
+      </div>
+      <div class="coord-field">
+        <label>W（幅）</label>
+        <input type="number" id="inW" value="100" min="1">
+        <div class="stepper-row">
+          <button class="step-btn" onclick="step('inW',-10)">-10</button>
+          <button class="step-btn" onclick="step('inW',-1)">-1</button>
+          <button class="step-btn" onclick="step('inW',1)">+1</button>
+          <button class="step-btn" onclick="step('inW',10)">+10</button>
+        </div>
+      </div>
+      <div class="coord-field">
+        <label>H（高さ）</label>
+        <input type="number" id="inH" value="40" min="1">
+        <div class="stepper-row">
+          <button class="step-btn" onclick="step('inH',-10)">-10</button>
+          <button class="step-btn" onclick="step('inH',-1)">-1</button>
+          <button class="step-btn" onclick="step('inH',1)">+1</button>
+          <button class="step-btn" onclick="step('inH',10)">+10</button>
+        </div>
+      </div>
+    </div>
+    <button class="add-btn" id="addInputBtn">＋ この座標で領域を登録</button>
+    <!-- プレビュー -->
+    <div style="margin-top:10px;">
+      <div class="card-title">プレビュー（選択範囲）</div>
+      <canvas id="previewCanvas" style="width:100%;border-radius:8px;border:1px solid #383838;display:block;"></canvas>
+    </div>
+  </div>
+
+  <!-- 登録済み領域 -->
+
+  <div style="margin-top:14px;">
+    <div class="card-title">登録済み領域</div>
+    <div id="regionList"><span style="font-size:12px;color:#555;">（未登録）</span></div>
+  </div>
 </div>
 
-<!-- STEP2: 設定 -->
-<div class="card" id="settingsArea" style="display:none;">
-  <div class="card-title">STEP 2 — 設定</div>
+<!-- STEP3 -->
 
+<div class="card" id="step3Card" style="display:none;">
+  <div class="card-title">STEP 3 — OCR設定 &amp; 実行</div>
   <div class="setting-row">
     <span class="setting-label">言語</span>
     <select id="langSelect">
-      <option value="jpn">日本語 (jpn)</option>
-      <option value="eng">英語 (eng)</option>
+      <option value="jpn">日本語</option>
+      <option value="eng">英語</option>
       <option value="jpn+eng">日本語+英語</option>
     </select>
   </div>
-
   <div class="setting-row">
-    <span class="setting-label">モード</span>
+    <span class="setting-label">PSMモード</span>
     <select id="modeSelect">
-      <option value="3">自動（デフォルト）</option>
-      <option value="6">単一ブロック</option>
-      <option value="7">単一行</option>
-      <option value="11">スペースなし単一行</option>
-      <option value="13">生テキスト行</option>
+      <option value="3">3: 自動</option>
+      <option value="6">6: 単一ブロック</option>
+      <option value="7">7: 単一行</option>
+      <option value="11">11: スペースなし行</option>
+      <option value="13">13: 生テキスト行</option>
     </select>
   </div>
-
-  <div class="card-title" style="margin-top:12px;">前処理（重ねがけ可）</div>
+  <div class="card-title" style="margin-top:10px;">前処理</div>
   <div class="toggle-row">
-    <button class="toggle-btn" id="toggleGray">グレースケール</button>
-    <button class="toggle-btn" id="toggleContrast">コントラスト強調</button>
-    <button class="toggle-btn" id="toggleThresh">二値化</button>
-    <button class="toggle-btn" id="toggleInvert">白黒反転</button>
-    <button class="toggle-btn" id="toggleScale">2倍拡大</button>
+    <button class="toggle-btn" id="tGray">グレースケール</button>
+    <button class="toggle-btn" id="tContrast">コントラスト</button>
+    <button class="toggle-btn" id="tThresh">二値化</button>
+    <button class="toggle-btn" id="tInvert">反転</button>
+    <button class="toggle-btn" id="tScale">2倍拡大</button>
   </div>
-
-  <button class="btn btn-primary" id="runBtn" onclick="runOCR()">▶ OCR実行</button>
-
+  <button class="btn btn-primary" id="runAllBtn">▶ 全領域OCR実行</button>
   <div id="statusBar">
     <span id="statusText">処理中...</span>
     <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
   </div>
 </div>
 
-<!-- STEP3: 結果 -->
-<div class="card" id="resultArea">
-  <div class="card-title">STEP 3 — 結果</div>
+<!-- STEP4 結果 -->
 
-  <div class="result-block">
-    <div class="result-block-label">認識テキスト（生）</div>
-    <div class="result-text" id="rawText"></div>
-    <button class="copy-btn" id="copyBtn" onclick="copyText()">📋 コピー</button>
-  </div>
-
-  <div class="result-block">
-    <div class="result-block-label">信頼度</div>
-    <div class="conf-row">
-      <span class="conf-label">全体</span>
-      <div class="conf-bar"><div class="conf-fill" id="confFill"></div></div>
-      <span class="conf-val" id="confVal">-</span>
-    </div>
-  </div>
-
-  <div class="result-block">
-    <div class="result-block-label">単語別（信頼度色分け）</div>
-    <div class="word-list" id="wordList"></div>
-    <div style="font-size:10px;color:#555;margin-top:6px;">
-      🟢 80以上 &nbsp; 🟡 50〜79 &nbsp; 🔴 50未満
-    </div>
-  </div>
+<div class="card" id="resultArea" style="display:none;">
+  <div class="card-title">STEP 4 — 結果</div>
+  <div id="resultGroups"></div>
 </div>
 
-<div class="version">OCR Test v1.0 — Tesseract.js</div>
+<!-- 座標出力 -->
+
+<div class="card" id="coordCard" style="display:none;">
+  <div class="card-title">座標データ（JS用）</div>
+  <div id="coordOutput"></div>
+  <button class="copy-btn" id="coordCopyBtn">📋 コピー</button>
+</div>
+
+<div class="version">OCR Test v3.0 — Tesseract.js</div>
 
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+
 <script>
-  let originalImageData = null;
-  let previewImg = null;
+  /* ── 状態 ── */
+  const COLORS = ['#7eb8d4','#fbbf24','#34d399','#f87171','#a78bfa','#fb923c'];
+  let originalImage = null;
+  let imgW = 0, imgH = 0;
+  let regions = [];
+  let selecting = false, selStart = null, selCurrent = null;
+  let currentTab = 'drag';
+  const tog = { gray:false, contrast:false, thresh:false, invert:false, scale:false };
 
-  const toggleStates = {
-    gray: false, contrast: false,
-    thresh: false, invert: false, scale: false
-  };
-
-  // トグルボタン設定
-  ['gray','contrast','thresh','invert','scale'].forEach(key => {
-    document.getElementById('toggle' + key.charAt(0).toUpperCase() + key.slice(1))
-      .addEventListener('click', function() {
-        toggleStates[key] = !toggleStates[key];
-        this.classList.toggle('active', toggleStates[key]);
-        if (originalImageData) applyPreprocess();
-      });
-  });
-
-  // ファイル選択
+  /* ── ファイル読み込み ── */
   document.getElementById('fileInput').addEventListener('change', function(e) {
     const file = e.target.files[0];
     if (!file) return;
-
     const reader = new FileReader();
     reader.onload = ev => {
       const img = new Image();
       img.onload = () => {
-        previewImg = img;
-        const canvas = document.getElementById('previewCanvas');
-        canvas.width  = img.width;
-        canvas.height = img.height;
-        canvas.getContext('2d').drawImage(img, 0, 0);
-        originalImageData = canvas.getContext('2d').getImageData(0, 0, img.width, img.height);
+        originalImage = img; imgW = img.width; imgH = img.height;
+        regions = []; selStart = selCurrent = null;
 
-        document.getElementById('previewArea').style.display = 'block';
-        document.getElementById('settingsArea').style.display = 'block';
-        document.getElementById('resultArea').style.display  = 'none';
+        // 画像サイズ表示
+        const sizeEl = document.getElementById('imgSizeInfo');
+        sizeEl.textContent = `元画像サイズ: ${imgW} × ${imgH} px`;
+        sizeEl.style.display = 'block';
+
+        setupCanvas();
+        updatePreviewCanvas();
+        ['step2Card','step3Card'].forEach(id => document.getElementById(id).style.display = 'block');
+        ['resultArea','coordCard'].forEach(id => document.getElementById(id).style.display = 'none');
+        renderRegionList(); drawCanvas();
       };
       img.src = ev.target.result;
     };
     reader.readAsDataURL(file);
   });
 
-  // 前処理適用
-  function applyPreprocess() {
-    const canvas = document.getElementById('previewCanvas');
+  /* ── タブ切り替え ── */
+  function switchTab(tab) {
+    currentTab = tab;
+    document.getElementById('tabDrag').classList.toggle('active', tab === 'drag');
+    document.getElementById('tabInput').classList.toggle('active', tab === 'input');
+    document.getElementById('dragPanel').style.display  = tab === 'drag'  ? 'block' : 'none';
+    document.getElementById('inputPanel').style.display = tab === 'input' ? 'block' : 'none';
+    if (tab === 'input') updatePreviewCanvas();
+  }
+  // 初期状態
+  document.getElementById('inputPanel').style.display = 'none';
+
+  /* ── ステッパー ── */
+  function step(id, delta) {
+    const el = document.getElementById(id);
+    el.value = Math.max(0, (parseInt(el.value) || 0) + delta);
+    updatePreviewCanvas();
+  }
+  // 入力変更時にもプレビュー更新
+  ['inX','inY','inW','inH'].forEach(id => {
+    document.getElementById(id).addEventListener('input', updatePreviewCanvas);
+  });
+
+  /* ── 座標入力プレビュー ── */
+  function updatePreviewCanvas() {
+    if (!originalImage) return;
+    const x = parseInt(document.getElementById('inX').value) || 0;
+    const y = parseInt(document.getElementById('inY').value) || 0;
+    const w = Math.max(1, parseInt(document.getElementById('inW').value) || 1);
+    const h = Math.max(1, parseInt(document.getElementById('inH').value) || 1);
+
+    // 元画像上の選択範囲をメインcanvasに描画
+    drawCanvas(x, y, w, h);
+
+    // プレビューcanvasに切り取り表示
+    const pc = document.getElementById('previewCanvas');
+    pc.width = w; pc.height = h;
+    pc.getContext('2d').drawImage(originalImage, x, y, w, h, 0, 0, w, h);
+  }
+
+  /* ── Canvas セットアップ ── */
+  function setupCanvas() {
+    const wrap = document.getElementById('canvasWrap');
+    // 古いcanvasを置き換えてイベント重複を防ぐ
+    const old = document.getElementById('mainCanvas');
+    const nc  = old.cloneNode(true);
+    old.parentNode.replaceChild(nc, old);
+    nc.id = 'mainCanvas';
+    wrap.style.display = 'block';
+
+    const dispW = wrap.clientWidth || (window.innerWidth - 56);
+    nc.width = imgW; nc.height = imgH;
+    nc.style.width  = dispW + 'px';
+    nc.style.height = (imgH * dispW / imgW) + 'px';
+
+    nc.addEventListener('mousedown',  onDown);
+    nc.addEventListener('mousemove',  onMove);
+    nc.addEventListener('mouseup',    onUp);
+    nc.addEventListener('touchstart', onDown, { passive: false });
+    nc.addEventListener('touchmove',  onMove, { passive: false });
+    nc.addEventListener('touchend',   onUp,   { passive: false });
+  }
+
+  function getPos(e) {
+    const c = document.getElementById('mainCanvas');
+    const r = c.getBoundingClientRect();
+    const sx = imgW/r.width, sy = imgH/r.height;
+    const cx = e.touches ? e.touches[0].clientX : e.clientX;
+    const cy = e.touches ? e.touches[0].clientY : e.clientY;
+    return { x: Math.round((cx-r.left)*sx), y: Math.round((cy-r.top)*sy) };
+  }
+  function getUpPos(e) {
+    const c = document.getElementById('mainCanvas');
+    const r = c.getBoundingClientRect();
+    const sx = imgW/r.width, sy = imgH/r.height;
+    const cx = e.changedTouches ? e.changedTouches[0].clientX : e.clientX;
+    const cy = e.changedTouches ? e.changedTouches[0].clientY : e.clientY;
+    return { x: Math.round((cx-r.left)*sx), y: Math.round((cy-r.top)*sy) };
+  }
+
+  function onDown(e) { e.preventDefault(); selecting=true; selStart=getPos(e); selCurrent={...selStart}; document.getElementById('addDragBtn').disabled=true; }
+  function onMove(e) { e.preventDefault(); if(!selecting) return; selCurrent=getPos(e); drawCanvas(); updateDragInfo(); }
+  function onUp(e)   {
+    e.preventDefault(); if(!selecting) return; selecting=false; selCurrent=getUpPos(e); drawCanvas(); updateDragInfo();
+    const rw=Math.abs((selCurrent.x||0)-(selStart.x||0)), rh=Math.abs((selCurrent.y||0)-(selStart.y||0));
+    document.getElementById('addDragBtn').disabled=(rw<5||rh<5);
+  }
+
+  function updateDragInfo() {
+    if (!selStart||!selCurrent) return;
+    const x=Math.min(selStart.x,selCurrent.x), y=Math.min(selStart.y,selCurrent.y);
+    const w=Math.abs(selCurrent.x-selStart.x), h=Math.abs(selCurrent.y-selStart.y);
+    document.getElementById('selInfo').textContent=`選択中: x=${x} y=${y} w=${w} h=${h}`;
+  }
+
+  /* ── Canvas描画（inputHighlight: 座標入力パネルのハイライト用） ── */
+  function drawCanvas(hlX, hlY, hlW, hlH) {
+    const canvas = document.getElementById('mainCanvas');
+    if (!canvas || !originalImage) return;
     const ctx = canvas.getContext('2d');
-    const w = canvas.width, h = canvas.height;
+    ctx.clearRect(0,0,imgW,imgH);
+    ctx.drawImage(originalImage,0,0);
 
-    // オリジナルに戻す
-    ctx.putImageData(originalImageData, 0, 0);
-    let imgData = ctx.getImageData(0, 0, w, h);
-    let d = imgData.data;
-
-    // グレースケール
-    if (toggleStates.gray || toggleStates.contrast || toggleStates.thresh) {
-      for (let i = 0; i < d.length; i += 4) {
-        const g = d[i]*0.299 + d[i+1]*0.587 + d[i+2]*0.114;
-        d[i] = d[i+1] = d[i+2] = g;
-      }
-    }
-
-    // コントラスト強調
-    if (toggleStates.contrast) {
-      const factor = 2.0;
-      for (let i = 0; i < d.length; i += 4) {
-        d[i]   = Math.min(255, Math.max(0, factor*(d[i]  -128)+128));
-        d[i+1] = Math.min(255, Math.max(0, factor*(d[i+1]-128)+128));
-        d[i+2] = Math.min(255, Math.max(0, factor*(d[i+2]-128)+128));
-      }
-    }
-
-    // 二値化
-    if (toggleStates.thresh) {
-      const th = 128;
-      for (let i = 0; i < d.length; i += 4) {
-        const v = d[i] > th ? 255 : 0;
-        d[i] = d[i+1] = d[i+2] = v;
-      }
-    }
-
-    // 白黒反転
-    if (toggleStates.invert) {
-      for (let i = 0; i < d.length; i += 4) {
-        d[i]   = 255 - d[i];
-        d[i+1] = 255 - d[i+1];
-        d[i+2] = 255 - d[i+2];
-      }
-    }
-
-    ctx.putImageData(imgData, 0, 0);
-
-    // 2倍拡大（別canvasに）
-    if (toggleStates.scale) {
-      const tmp = document.createElement('canvas');
-      tmp.width  = w * 2;
-      tmp.height = h * 2;
-      tmp.getContext('2d').drawImage(canvas, 0, 0, w*2, h*2);
-      ctx.clearRect(0, 0, w, h);
-      canvas.width  = w * 2;
-      canvas.height = h * 2;
-      canvas.getContext('2d').drawImage(tmp, 0, 0);
-    } else {
-      canvas.width  = originalImageData.width;
-      canvas.height = originalImageData.height;
-      canvas.getContext('2d').putImageData(imgData, 0, 0);
-    }
-  }
-
-  // OCR実行
-  async function runOCR() {
-    if (!previewImg) return;
-
-    const btn = document.getElementById('runBtn');
-    btn.disabled = true;
-
-    const statusBar = document.getElementById('statusBar');
-    statusBar.style.display = 'block';
-    document.getElementById('resultArea').style.display = 'none';
-
-    const lang = document.getElementById('langSelect').value;
-    const psm  = document.getElementById('modeSelect').value;
-
-    try {
-      const canvas = document.getElementById('previewCanvas');
-
-      const result = await Tesseract.recognize(canvas, lang, {
-        logger: m => {
-          if (m.status === 'recognizing text') {
-            const pct = Math.round(m.progress * 100);
-            document.getElementById('progressFill').style.width = pct + '%';
-            document.getElementById('statusText').textContent   = `認識中... ${pct}%`;
-          } else {
-            document.getElementById('statusText').textContent = m.status;
-          }
-        },
-        tessedit_pageseg_mode: psm,
-      });
-
-      displayResult(result);
-    } catch (e) {
-      document.getElementById('statusText').textContent = 'エラー: ' + e.message;
-    }
-
-    btn.disabled = false;
-  }
-
-  function displayResult(result) {
-    document.getElementById('statusBar').style.display = 'none';
-    document.getElementById('resultArea').style.display = 'block';
-
-    // 生テキスト
-    const rawText = result.data.text.trim();
-    const rawEl   = document.getElementById('rawText');
-    rawEl.textContent = rawText || '（テキスト未検出）';
-    rawEl.className   = 'result-text' + (rawText ? '' : ' empty');
-
-    // 全体信頼度
-    const conf = result.data.confidence;
-    const confColor = conf >= 70 ? '#34d399' : conf >= 40 ? '#fbbf24' : '#f87171';
-    document.getElementById('confFill').style.width      = conf + '%';
-    document.getElementById('confFill').style.background = confColor;
-    document.getElementById('confVal').textContent        = Math.round(conf) + '%';
-    document.getElementById('confVal').style.color        = confColor;
-
-    // 単語別
-    const wordList = document.getElementById('wordList');
-    wordList.innerHTML = '';
-    (result.data.words || []).forEach(w => {
-      if (!w.text.trim()) return;
-      const chip = document.createElement('span');
-      chip.className = 'word-chip ' + (w.confidence >= 80 ? 'high' : w.confidence >= 50 ? 'mid' : 'low');
-      chip.textContent = w.text + ' (' + Math.round(w.confidence) + ')';
-      wordList.appendChild(chip);
+    // 登録済み領域
+    regions.forEach(r => {
+      ctx.strokeStyle=r.color; ctx.lineWidth=3; ctx.setLineDash([]);
+      ctx.strokeRect(r.x,r.y,r.w,r.h);
+      ctx.fillStyle=r.color; ctx.font='bold 18px Rajdhani,sans-serif';
+      ctx.fillText(r.name,r.x+4,r.y+20);
     });
-    if (!wordList.children.length) {
-      wordList.innerHTML = '<span style="color:#555;font-size:12px;">単語なし</span>';
+
+    // ドラッグ選択中
+    if (selStart && selCurrent && currentTab==='drag') {
+      const x=Math.min(selStart.x,selCurrent.x), y=Math.min(selStart.y,selCurrent.y);
+      const w=Math.abs(selCurrent.x-selStart.x), h=Math.abs(selCurrent.y-selStart.y);
+      ctx.strokeStyle='rgba(255,255,255,0.9)'; ctx.lineWidth=2; ctx.setLineDash([6,3]);
+      ctx.strokeRect(x,y,w,h);
+      ctx.fillStyle='rgba(255,255,255,0.07)'; ctx.fillRect(x,y,w,h);
+      ctx.setLineDash([]);
     }
 
-    document.getElementById('resultArea').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    // 座標入力パネルのハイライト
+    if (hlW !== undefined && currentTab==='input') {
+      ctx.strokeStyle='rgba(255,255,255,0.85)'; ctx.lineWidth=2; ctx.setLineDash([6,3]);
+      ctx.strokeRect(hlX,hlY,hlW,hlH);
+      ctx.fillStyle='rgba(255,255,255,0.08)'; ctx.fillRect(hlX,hlY,hlW,hlH);
+      ctx.setLineDash([]);
+    }
   }
 
-  function copyText() {
-    const text = document.getElementById('rawText').textContent;
-    navigator.clipboard.writeText(text).then(() => {
-      const btn = document.getElementById('copyBtn');
-      btn.textContent = '✅ コピーしました';
-      btn.classList.add('copied');
-      setTimeout(() => {
-        btn.textContent = '📋 コピー';
-        btn.classList.remove('copied');
-      }, 2000);
+  /* ── 領域登録（ドラッグ） ── */
+  document.getElementById('addDragBtn').addEventListener('click', () => {
+    if (!selStart||!selCurrent) return;
+    const x=Math.min(selStart.x,selCurrent.x), y=Math.min(selStart.y,selCurrent.y);
+    const w=Math.abs(selCurrent.x-selStart.x), h=Math.abs(selCurrent.y-selStart.y);
+    if (w<5||h<5) return;
+    const name = prompt('領域名', `領域${regions.length+1}`) || `領域${regions.length+1}`;
+    addRegion(name, x, y, w, h);
+    selStart=selCurrent=null;
+    document.getElementById('addDragBtn').disabled=true;
+    document.getElementById('selInfo').textContent='ドラッグして次の領域を選択できます';
+  });
+
+  /* ── 領域登録（座標入力） ── */
+  document.getElementById('addInputBtn').addEventListener('click', () => {
+    const x=parseInt(document.getElementById('inX').value)||0;
+    const y=parseInt(document.getElementById('inY').value)||0;
+    const w=Math.max(1,parseInt(document.getElementById('inW').value)||1);
+    const h=Math.max(1,parseInt(document.getElementById('inH').value)||1);
+    const name=document.getElementById('inputName').value.trim()||`領域${regions.length+1}`;
+    addRegion(name, x, y, w, h);
+    // 次の入力用に名前をインクリメント
+    const match = name.match(/^(.+?)(\d+)$/);
+    if (match) document.getElementById('inputName').value = match[1]+(parseInt(match[2])+1);
+  });
+
+  function addRegion(name, x, y, w, h) {
+    const color = COLORS[regions.length % COLORS.length];
+    regions.push({ name, x, y, w, h, color });
+    renderRegionList(); drawCanvas(); updateCoordOutput();
+  }
+
+  /* ── 編集（座標入力パネルへ値をセット） ── */
+  function editRegion(i) {
+    const r = regions[i];
+    document.getElementById('inputName').value = r.name;
+    document.getElementById('inX').value = r.x;
+    document.getElementById('inY').value = r.y;
+    document.getElementById('inW').value = r.w;
+    document.getElementById('inH').value = r.h;
+    switchTab('input');
+    updatePreviewCanvas();
+    // 既存から削除（再登録してもらう）
+    regions.splice(i, 1);
+    renderRegionList(); drawCanvas(); updateCoordOutput();
+  }
+
+  function renderRegionList() {
+    const list = document.getElementById('regionList');
+    if (!regions.length) { list.innerHTML='<span style="font-size:12px;color:#555;">（未登録）</span>'; return; }
+    list.innerHTML='';
+    regions.forEach((r,i) => {
+      const item=document.createElement('div'); item.className='region-item';
+      item.innerHTML=`
+        <div class="region-dot" style="background:${r.color};"></div>
+        <span class="region-name">${r.name}</span>
+        <span class="region-coord">x:${r.x} y:${r.y}<br>w:${r.w} h:${r.h}</span>
+        <div class="region-acts">
+          <button class="r-btn run" data-i="${i}">▶</button>
+          <button class="r-btn edit" data-i="${i}">✎</button>
+          <button class="r-btn del" data-i="${i}">✕</button>
+        </div>`;
+      item.querySelector('.run').onclick  = () => runOCR([regions[i]]);
+      item.querySelector('.edit').onclick = () => editRegion(i);
+      item.querySelector('.del').onclick  = () => { regions.splice(i,1); renderRegionList(); drawCanvas(); updateCoordOutput(); };
+      list.appendChild(item);
     });
   }
+
+  /* ── 前処理トグル ── */
+  [['tGray','gray'],['tContrast','contrast'],['tThresh','thresh'],['tInvert','invert'],['tScale','scale']].forEach(([id,key])=>{
+    document.getElementById(id).addEventListener('click',function(){ tog[key]=!tog[key]; this.classList.toggle('active',tog[key]); });
+  });
+
+  /* ── 前処理済みCanvas生成 ── */
+  function getProcessed(x,y,w,h) {
+    const c=document.createElement('canvas'); c.width=w; c.height=h;
+    c.getContext('2d').drawImage(originalImage,x,y,w,h,0,0,w,h);
+    const ctx=c.getContext('2d'); let d=ctx.getImageData(0,0,w,h); let p=d.data;
+    if(tog.gray||tog.contrast||tog.thresh){for(let i=0;i<p.length;i+=4){const g=p[i]*.299+p[i+1]*.587+p[i+2]*.114;p[i]=p[i+1]=p[i+2]=g;}}
+    if(tog.contrast){const f=2;for(let i=0;i<p.length;i+=4){p[i]=Math.min(255,Math.max(0,f*(p[i]-128)+128));p[i+1]=Math.min(255,Math.max(0,f*(p[i+1]-128)+128));p[i+2]=Math.min(255,Math.max(0,f*(p[i+2]-128)+128));}}
+    if(tog.thresh){for(let i=0;i<p.length;i+=4){const v=p[i]>128?255:0;p[i]=p[i+1]=p[i+2]=v;}}
+    if(tog.invert){for(let i=0;i<p.length;i+=4){p[i]=255-p[i];p[i+1]=255-p[i+1];p[i+2]=255-p[i+2];}}
+    ctx.putImageData(d,0,0);
+    if(tog.scale){const b=document.createElement('canvas');b.width=w*2;b.height=h*2;b.getContext('2d').drawImage(c,0,0,w*2,h*2);return b;}
+    return c;
+  }
+
+  /* ── OCR実行 ── */
+  document.getElementById('runAllBtn').addEventListener('click',()=>{
+    if(!regions.length){alert('領域を登録してください');return;}
+    runOCR(regions);
+  });
+
+  async function runOCR(targets) {
+    const btn=document.getElementById('runAllBtn');
+    btn.disabled=true;
+    document.getElementById('statusBar').style.display='block';
+    document.getElementById('resultArea').style.display='none';
+    const lang=document.getElementById('langSelect').value;
+    const psm=document.getElementById('modeSelect').value;
+    const results=[];
+
+    for(let i=0;i<targets.length;i++){
+      const r=targets[i];
+      document.getElementById('statusText').textContent=`[${i+1}/${targets.length}] ${r.name} 処理中...`;
+      document.getElementById('progressFill').style.width='0%';
+      try{
+        const canvas=getProcessed(r.x,r.y,r.w,r.h);
+        const res=await Tesseract.recognize(canvas,lang,{
+          logger:m=>{if(m.status==='recognizing text')document.getElementById('progressFill').style.width=Math.round(m.progress*100)+'%';},
+          tessedit_pageseg_mode:psm,
+        });
+        results.push({region:r,data:res.data,error:null});
+      }catch(e){
+        results.push({region:r,data:null,error:e.message});
+      }
+    }
+
+    document.getElementById('statusBar').style.display='none';
+    displayResults(results);
+    btn.disabled=false;
+  }
+
+  function displayResults(results) {
+    const area=document.getElementById('resultArea');
+    const groups=document.getElementById('resultGroups');
+    area.style.display='block'; groups.innerHTML='';
+    results.forEach(({region:r,data,error})=>{
+      const g=document.createElement('div'); g.className='result-group';
+      g.innerHTML=`<div class="result-group-label"><span class="result-dot" style="background:${r.color};"></span>${r.name}</div>`;
+      if(error){
+        g.innerHTML+=`<div class="result-text empty">エラー: ${error}</div>`;
+      }else{
+        const text=(data.text||'').trim();
+        const conf=data.confidence;
+        const cc=conf>=70?'#34d399':conf>=40?'#fbbf24':'#f87171';
+        const te=document.createElement('div'); te.className='result-text'+(text?'':' empty'); te.textContent=text||'（テキスト未検出）'; g.appendChild(te);
+        const cr=document.createElement('div'); cr.className='conf-row';
+        cr.innerHTML=`<div class="conf-bar"><div class="conf-fill" style="width:${conf}%;background:${cc};"></div></div><span class="conf-val" style="color:${cc};">${Math.round(conf)}%</span>`;
+        g.appendChild(cr);
+        const wl=document.createElement('div'); wl.className='word-list';
+        (data.words||[]).forEach(w=>{
+          if(!w.text.trim())return;
+          const c=document.createElement('span');
+          c.className='word-chip '+(w.confidence>=80?'wc-high':w.confidence>=50?'wc-mid':'wc-low');
+          c.textContent=`${w.text}(${Math.round(w.confidence)})`;
+          wl.appendChild(c);
+        });
+        if(!wl.children.length)wl.innerHTML='<span style="color:#555;font-size:11px;">単語なし</span>';
+        g.appendChild(wl);
+      }
+      groups.appendChild(g);
+    });
+    area.scrollIntoView({behavior:'smooth',block:'start'});
+  }
+
+  /* ── 座標出力 ── */
+  function updateCoordOutput() {
+    const card=document.getElementById('coordCard');
+    if(!regions.length){card.style.display='none';return;}
+    card.style.display='block';
+    const lines=regions.map(r=>`  "${r.name}": { x:${r.x}, y:${r.y}, w:${r.w}, h:${r.h} }`);
+    document.getElementById('coordOutput').textContent=`// 元画像サイズ: ${imgW}×${imgH}\nconst CROP_REGIONS = {\n${lines.join(',\n')}\n};`;
+  }
+
+  document.getElementById('coordCopyBtn').addEventListener('click',function(){
+    navigator.clipboard.writeText(document.getElementById('coordOutput').textContent).then(()=>{
+      this.textContent='✅ コピーしました'; this.classList.add('copied');
+      setTimeout(()=>{this.textContent='📋 コピー';this.classList.remove('copied');},2000);
+    });
+  });
 </script>
 
 </body>
